@@ -1,22 +1,22 @@
 import Format from './Format';
 
 class Day {
-  year: number;
-  month: number;
-  day: number;
-  hour: number;
-  minute: number;
-  second: number;
-  milisecond: number;
+  protected year: number;
+  protected month: number;
+  protected day: number;
+  protected hour: number;
+  protected minute: number;
+  protected second: number;
+  protected milisecond: number;
 
   constructor(
     year: number = new Date().getFullYear(),
     month: number = new Date().getMonth(),
     day: number = new Date().getDate(),
     hour: number = new Date().getHours(),
-    minute: number = new Date().getMinutes(),
-    second: number = new Date().getSeconds(),
-    milisecond: number = new Date().getMilliseconds()
+    minute: number = 0,
+    second: number = 0,
+    milisecond: number = 0,
   ) {
     this.year = year;
     this.month = month;
