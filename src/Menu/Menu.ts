@@ -5,7 +5,7 @@ export default class Menu {
   private eventManager: EventManager;
 
   constructor() {
-    this.eventManager = new EventManager('events', 'events.json');
+    this.eventManager = new EventManager('events.json');
     this.eventManager.init();
   }
 
