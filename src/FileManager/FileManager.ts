@@ -1,11 +1,7 @@
 import fs from 'fs';
 
 export default class FileManager {
-  protected dir: string;
-
-  constructor(dir: string) {
-    this.dir = dir;
-  }
+  constructor() {}
 
   protected mkdir = async (path: string): Promise<boolean> => {
     return new Promise((resolve) => {

@@ -9,8 +9,8 @@ import Config from '../Config';
 
 export default class EventManager extends FileManager {
   private file: string;
-  constructor (dir: string, file: string) {
-    super(dir);
+  constructor (file: string) {
+    super();
     this.file = file;
   }
 
