@@ -1,8 +1,6 @@
 import EventManager from "../EventManager/EventManager";
 import commandLine from "../CommandLineInterface/CommandLineInterface";
 
-import messages from './Menu.messages';
-
 export default class Menu {
   private eventManager: EventManager;
 
@@ -12,39 +10,54 @@ export default class Menu {
   }
 
   public run = async () => {
-    commandLine.output(`1. ${messages.showCloseEvents}`);
-    commandLine.output(`2. ${messages.createEvent}`);
-    commandLine.output(`3. ${messages.manageEvents}`);
+    commandLine.output('1. Show upcoming events');
+    commandLine.output('2. Create a new event');
+    commandLine.output('3. Edit event');
+    commandLine.output('4. Delete event');
 
-    commandLine.output(`9. ${messages.exit}`);
+    commandLine.output('9. Exit');
 
-    await commandLine.input(messages.choose, (response) => {
-      switch (response) {
-        case '1': {
-          this.eventManager.showCloseEvents().then(() => {
-            this.run();
-          });
-          break;
-        }
+    const response = await commandLine.input('Please choose an option:');
 
-        case '2': {
-          this.eventManager.createEvent().then(() => {
-            this.run();
-          });
-          break;
-        }
-
-        case '9': {
-          commandLine.close();
-          break;
-        }
-
-        default: {
-          console.clear();
-          commandLine.output('Option not recognized... Try again');
+    switch (response) {
+      case '1': {
+        this.eventManager.showCloseEvents().then(() => {
           this.run();
-        }
+        });
+        break;
       }
-    })
+
+      case '2': {
+        this.eventManager.createEvent().then(() => {
+          this.run();
+        });
+        break;
+      }
+
+      case '3': {
+        this.eventManager.editEvent().then(() => {
+          this.run();
+        });
+        break;
+      }
+
+      case '4': {
+        this.eventManager.deleteEvent().then(() => {
+          this.run();
+        });
+        break;
+      }
+
+      case '9': {
+        commandLine.close();
+        break;
+      }
+
+      default: {
+        console.clear();
+        commandLine.output('Option not recognized... Try again');
+        this.run();
+      }
+    }
   }
 };

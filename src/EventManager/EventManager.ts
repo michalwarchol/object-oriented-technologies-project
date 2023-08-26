@@ -7,8 +7,6 @@ import DateValidator from '../Validators/DateValidator';
 import commandLine from '../CommandLineInterface/CommandLineInterface';
 import Config from '../Config';
 
-import messages from './EventManager.messages';
-
 export default class EventManager extends FileManager {
   private file: string;
   constructor (dir: string, file: string) {
@@ -35,30 +33,22 @@ export default class EventManager extends FileManager {
     return true;
   }
 
-  private getDate = () => new Promise<string>((resolve) => {
-    commandLine.input(messages.enterDate, (response) => {
-      const validator = new DateValidator({ isDateFormat: true });
+  private getDate = async (): Promise<string> => {
+    const response  = await commandLine.input('Date (yyyy-mm-dd hh:mm:ss): ');
+
+    const validator = new DateValidator({ isDateFormat: true });
       if (!validator.validate(response)) {
-        this.getDate().then(resolve);
+        const res = await this.getDate();
+
+        return res;
       } else {
-        resolve(response);
+        return response;
       }
-    });
-  });
+    };
 
   public createEvent = async (): Promise<boolean> => {
-    const name = await new Promise<string>((resolve) => {
-      commandLine.input(messages.enterName, (response) => {
-        resolve(response);
-      });
-    });
-    
-    const description = await new Promise<string>((resolve) => {
-      commandLine.input(messages.enterDescription, (response) => {
-        resolve(response);
-      });
-    });
-
+    const name = await commandLine.input('Enter event name: ');
+    const description = await commandLine.input('Enter event description: ');
     const dateInput = await this.getDate();
 
     const { year, month, day, hour, minute, second } = Format.getDateValues(dateInput);
@@ -66,16 +56,26 @@ export default class EventManager extends FileManager {
     return this.saveEvent(new Event(name, description, year, month, day, hour, minute, second));
   }
 
-  private getCloseEvents = async (): Promise<TEvent[]> => {
-    const now = new Date();
-    const oneWeekLater = new Date();
-    oneWeekLater.setDate(now.getDate() + 7);
-
+  private getAllEvents = async (): Promise<TEvent[]> => {
     const data = await this.readFile<TEvent[]>(Config.eventsDir + '/' + this.file);
 
     if (data === null) {
       return [];
     }
+
+    return data;
+  }
+
+  private getCloseEvents = async (): Promise<TEvent[]> => {
+    const data = await this.readFile<TEvent[]>(Config.eventsDir + '/' + this.file);
+
+    if (data === null) {
+      return [];
+    }
+
+    const now = new Date();
+    const oneWeekLater = new Date();
+    oneWeekLater.setDate(now.getDate() + 7);
 
     return data.filter((e) => {
       const event = new Event(e.name, e.description, e.year, e.month, e.day);
@@ -85,6 +85,10 @@ export default class EventManager extends FileManager {
       const nowTime = now.getTime();
       const oneWeekLaterTime = oneWeekLater.getTime();
 
+      console.log(nowTime);
+      console.log(dateTime);
+      console.log(oneWeekLaterTime);
+
       return dateTime >= nowTime && dateTime <= oneWeekLaterTime;
     })
   } 
@@ -93,12 +97,70 @@ export default class EventManager extends FileManager {
     const events = await this.getCloseEvents();
 
     if(events.length === 0) {
-      commandLine.output(messages.noData);
+      commandLine.output('No events found!');
     }
 
     events.forEach((eventData) => {
       const event = new Event(eventData.name, eventData.description, eventData.year, eventData.month, eventData.day);
       event.showEvent();
     });
+  }
+
+  public editEvent = async (): Promise<void> => {
+    const events = await this.getAllEvents();
+
+    events.forEach((event, i) => {
+      commandLine.output(`${i + 1}. ${event.name}`);
+    });
+
+    const response = await commandLine.input('Choose event to edit: ');    
+    const index = parseInt(response) - 1;
+    const event = events[index];
+
+    if (!event) {
+      commandLine.output('Event not found!');
+    } else {
+      commandLine.output(`You have chosen ${event.name}\n`);
+
+      const name = await commandLine.input('Enter event name: ');
+      const description = await commandLine.input('Enter event description: ');
+      const dateInput = await this.getDate();
+
+      const { year, month, day, hour, minute, second } = Format.getDateValues(dateInput);
+
+      const newEvent = new Event(name, description, year, month, day, hour, minute, second);
+      const newEventData = newEvent.getEventData();
+
+      events[index] = newEventData;
+
+      this.writeFile(Config.eventsDir + '/' + this.file, events);
+
+      commandLine.output(`Event has been edited successfully!`);
+    }
+  }
+
+  public deleteEvent = async (): Promise<boolean> => {
+    const events = await this.getAllEvents();
+
+    events.forEach((event, i) => {
+      commandLine.output(`${i + 1}. ${event.name}`);
+    });
+
+    const response = await commandLine.input('Choose event to delete: ');    
+    const index = parseInt(response) - 1;
+    const event = events[index];
+
+    if (!event) {
+      commandLine.output('Event not found!');
+
+      return false;
+    } else {
+      events.splice(index, 1);
+      this.writeFile(Config.eventsDir + '/' + this.file, events);
+
+      commandLine.output(`Event has been deleted successfully!`);
+
+      return true;
+    }
   }
 }

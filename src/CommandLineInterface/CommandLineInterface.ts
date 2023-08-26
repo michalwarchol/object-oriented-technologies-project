@@ -18,10 +18,10 @@ class CommandLineInterface {
     })
   }
 
-  public input = async (question: string, callback: (output: string) => void): Promise<void> => {
+  public input = async (question: string): Promise<string> => {
     const output = await this.question(question);
 
-    callback(output);
+    return output;
   }
 
   public output = (text: string): void => {
